@@ -5,44 +5,44 @@
     - group_vars/vault.yml
     - group_vars/vars.yml
   tasks:
-  #   - block:
-  #     - name: Initial server setup (security etc.)
-  #       include_role:
-  #         name: jstet.initial_server_setup
-  #       vars:
-  #         extra_packages:
-  #           - net-tools
-  #           - vim
-  #           - certbot 
-  #           - python3-certbot-apache
+    # - block:
+    #   - name: Initial server setup (security etc.)
+    #     include_role:
+    #       name: jstet.initial_server_setup
+    #     vars:
+    #       extra_packages:
+    #         - net-tools
+    #         - vim
+    #         - certbot 
+    #         - python3-certbot-apache
 
-  #         services:
-  #           - name: http
-  #             port: 80
-  #             protocols:
-  #               - tcp
-  #               - udp
-  #           - name: https
-  #             port: 443
-  #             protocols:
-  #               - tcp
-  #               - udp
-  #     become: yes
+    #       services:
+    #         - name: http
+    #           port: 80
+    #           protocols:
+    #             - tcp
+    #             - udp
+    #         - name: https
+    #           port: 443
+    #           protocols:
+    #             - tcp
+    #             - udp
+    #   become: yes
     
-    - block:
-      - name: Installing PHP
-        include_role:
-          name: geerlingguy.php
-        vars:
-          php_memory_limit: "512M"
-          php_max_execution_time: "1200"
-          php_upload_max_filesize: "2000M"
-          php_packages:
-            - php
-            - php-cli
-            - php-common
-            - php-mysql
-      become: yes
+    # - block:
+    #   - name: Installing PHP
+    #     include_role:
+    #       name: geerlingguy.php
+    #     vars:
+    #       php_memory_limit: "512M"
+    #       php_max_execution_time: "1200"
+    #       php_upload_max_filesize: "2000M"
+    #       php_packages:
+    #         - php
+    #         - php-cli
+    #         - php-common
+    #         - php-mysql
+    #   become: yes
 
     # - block:
     #   - name: Installing mysql
@@ -61,45 +61,54 @@
     #           priv: "wordpress.*:ALL"
     #   become: yes
 
-    # - name: installing wordpress
-    #   become_user: www-data
-    #   become: true
-    #   shell: |
-    #     mkdir -p /srv/www
-    #     chown www-data: /srv/www
-    #     curl https://wordpress.org/latest.tar.gz | tar zx -C /srv/www
+    - name: Create a directory if it does not exist
+      ansible.builtin.file:
+        path: /srv/www
+        state: directory
+        mode: "700"
+        owner: www-data
+        recurse: true
+      become_user: www-data
+      become: true
+
+    - name: installing wordpress
+      become_user: www-data
+      become: true
+      shell: |
+        chown www-data: /srv/www
+        curl https://de.wordpress.org/wordpress-6.0-de_DE.tar.gz | tar zx -C /srv/www
     
-    # - block:
-    #   - name: Installing apache
-    #     include_role:
-    #       name: geerlingguy.apache
-    #     vars:
-    #       apache_listen_port: 80
-    #       apache_listen_port_ssl: 443
-    #       apache_create_vhosts: true
-    #       apache_remove_default_vhost: true
-    #       apache_vhosts:
-    #         - servername: "{{  domain  }}"
-    #           documentroot: "/srv/www/wordpress"
-    #           extra_parameters: |
-    #             <Directory /srv/www/wordpress>
-    #                 Options FollowSymLinks
-    #                 AllowOverride Limit Options FileInfo
-    #                 DirectoryIndex index.php
-    #                 Require all granted
-    #             </Directory>
-    #             <Directory /srv/www/wordpress/wp-content>
-    #                 Options FollowSymLinks
-    #                 Require all granted
-    #             </Directory>
-    #       apache_mods_enabled:
-    #         - rewrite
-    #   become: yes
+    - block:
+      - name: Installing apache
+        include_role:
+          name: geerlingguy.apache
+        vars:
+          apache_listen_port: 80
+          apache_listen_port_ssl: 443
+          apache_create_vhosts: true
+          apache_remove_default_vhost: true
+          apache_vhosts:
+            - servername: "{{  domain  }}"
+              documentroot: "/srv/www/wordpress"
+              extra_parameters: |
+                <Directory /srv/www/wordpress>
+                    Options FollowSymLinks
+                    AllowOverride Limit Options FileInfo
+                    DirectoryIndex index.php
+                    Require all granted
+                </Directory>
+                <Directory /srv/www/wordpress/wp-content>
+                    Options FollowSymLinks
+                    Require all granted
+                </Directory>
+          apache_mods_enabled:
+            - rewrite
+      become: yes
     
-    # - name: setting up ssl
-    #   shell: |
-    #     certbot --apache --non-interactive --agree-tos -m {{  email  }} -d {{  domain  }} 
-    #   become: true 
+    - name: setting up ssl
+      shell: |
+        certbot --apache --non-interactive --agree-tos -m {{  email  }} -d {{  domain  }} 
+      become: true 
     
     - name: configure WordPress to connect to the database 2
       become_user: www-data
