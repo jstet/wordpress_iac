@@ -1,0 +1,8 @@
+---
+roles:
+- jstet.initial_server_setup
+- geerlingguy.php
+- geerlingguy.mysql
+- geerlingguy.apache
+
+

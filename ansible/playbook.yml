@@ -1,0 +1,115 @@
+---
+- hosts: servers
+  become: true
+  vars_files:
+    - group_vars/vault.yml
+    - group_vars/vars.yml
+  tasks:
+  #   - block:
+  #     - name: Initial server setup (security etc.)
+  #       include_role:
+  #         name: jstet.initial_server_setup
+  #       vars:
+  #         extra_packages:
+  #           - net-tools
+  #           - vim
+  #           - certbot 
+  #           - python3-certbot-apache
+
+  #         services:
+  #           - name: http
+  #             port: 80
+  #             protocols:
+  #               - tcp
+  #               - udp
+  #           - name: https
+  #             port: 443
+  #             protocols:
+  #               - tcp
+  #               - udp
+  #     become: yes
+    
+    - block:
+      - name: Installing PHP
+        include_role:
+          name: geerlingguy.php
+        vars:
+          php_memory_limit: "512M"
+          php_max_execution_time: "1200"
+          php_upload_max_filesize: "2000M"
+          php_packages:
+            - php
+            - php-cli
+            - php-common
+            - php-mysql
+      become: yes
+
+    # - block:
+    #   - name: Installing mysql
+    #     include_role:
+    #       name: geerlingguy.mysql
+    #     vars:
+    #       mysql_root_password: "{{  mysql_root_pw  }}"
+    #       mysql_databases:
+    #         - name: wordpress
+    #           encoding: latin1
+    #           collation: latin1_general_ci
+    #       mysql_users:
+    #         - name: wordpress
+    #           host: "%"
+    #           password: "{{ mysql_wp_pw }}"
+    #           priv: "wordpress.*:ALL"
+    #   become: yes
+
+    # - name: installing wordpress
+    #   become_user: www-data
+    #   become: true
+    #   shell: |
+    #     mkdir -p /srv/www
+    #     chown www-data: /srv/www
+    #     curl https://wordpress.org/latest.tar.gz | tar zx -C /srv/www
+    
+    # - block:
+    #   - name: Installing apache
+    #     include_role:
+    #       name: geerlingguy.apache
+    #     vars:
+    #       apache_listen_port: 80
+    #       apache_listen_port_ssl: 443
+    #       apache_create_vhosts: true
+    #       apache_remove_default_vhost: true
+    #       apache_vhosts:
+    #         - servername: "{{  domain  }}"
+    #           documentroot: "/srv/www/wordpress"
+    #           extra_parameters: |
+    #             <Directory /srv/www/wordpress>
+    #                 Options FollowSymLinks
+    #                 AllowOverride Limit Options FileInfo
+    #                 DirectoryIndex index.php
+    #                 Require all granted
+    #             </Directory>
+    #             <Directory /srv/www/wordpress/wp-content>
+    #                 Options FollowSymLinks
+    #                 Require all granted
+    #             </Directory>
+    #       apache_mods_enabled:
+    #         - rewrite
+    #   become: yes
+    
+    # - name: setting up ssl
+    #   shell: |
+    #     certbot --apache --non-interactive --agree-tos -m {{  email  }} -d {{  domain  }} 
+    #   become: true 
+    
+    - name: configure WordPress to connect to the database 2
+      become_user: www-data
+      become: true
+      template: 
+        src: templates/wp-config.php
+        dest: /srv/www/wordpress/wp-config.php
+    
+
+    
+
+    
+    
