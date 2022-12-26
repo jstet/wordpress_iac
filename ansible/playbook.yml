@@ -34,6 +34,7 @@
     #     include_role:
     #       name: geerlingguy.php
     #     vars:
+    #       php_default_version_debian: "8.0"
     #       php_memory_limit: "512M"
     #       php_max_execution_time: "1200"
     #       php_upload_max_filesize: "2000M"
@@ -42,7 +43,7 @@
     #         - php-cli
     #         - php-common
     #         - php-mysql
-    #   become: yes
+    #   become: true
 
     # - block:
     #   - name: Installing mysql
@@ -59,7 +60,7 @@
     #           host: "%"
     #           password: "{{ mysql_wp_pw }}"
     #           priv: "wordpress.*:ALL"
-    #   become: yes
+    #   become: true
 
     - name: Create a directory if it does not exist
       ansible.builtin.file:
@@ -68,7 +69,6 @@
         mode: "700"
         owner: www-data
         recurse: true
-      become_user: www-data
       become: true
 
     - name: installing wordpress
@@ -76,7 +76,7 @@
       become: true
       shell: |
         chown www-data: /srv/www
-        curl https://de.wordpress.org/wordpress-6.0-de_DE.tar.gz | tar zx -C /srv/www
+        curl https://de.wordpress.org/latest-de_DE.tar.gz | tar zx -C /srv/www
     
     - block:
       - name: Installing apache
