@@ -43,6 +43,7 @@
             - php-cli
             - php-common
             - php-mysql
+            - php-curl
       become: true
 
     - block:
@@ -103,14 +104,14 @@
                 </Directory>
           apache_mods_enabled:
             - rewrite
-      become: yes
+      become: true
     
     - name: setting up ssl
       shell: |
         certbot --apache --non-interactive --agree-tos -m {{  email  }} -d {{  domain  }} 
       become: true 
     
-    - name: configure WordPress to connect to the database 2
+    - name: configure WordPress to connect to the database 
       become_user: www-data
       become: true
       template: 
